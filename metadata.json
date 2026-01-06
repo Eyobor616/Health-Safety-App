@@ -1,0 +1,7 @@
+{
+  "name": "GZI Safety SBO",
+  "description": "Health and Safety Behavioral Observation app for GZI canline operations. Track safe acts, unsafe conditions, and near misses with real-time dashboards and reporting.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
