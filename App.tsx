@@ -1,27 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
-  ClipboardList, 
-  LayoutDashboard, 
-  LogOut, 
-  ShieldCheck, 
+import {
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  ShieldCheck,
   Bell,
   Settings,
   WifiOff,
   AlertTriangle,
-  Mail,
-  Lock,
   ArrowRight,
   User as UserIcon
 } from 'lucide-react';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut,
-  updateProfile 
-} from "firebase/auth";
-import { auth } from "./firebase";
 import { getUserSBOs } from "./api";
 import Dashboard from './components/Dashboard';
 import NewSBOForm from './components/NewSBOForm';
@@ -29,20 +19,18 @@ import SubmissionHistory from './components/SubmissionHistory';
 import ManagerDashboard from './components/ManagerDashboard';
 import Toast, { ToastType } from './components/Toast';
 import { SBO, User } from './types';
+import { MOCK_USERS } from './constants';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'form' | 'history' | 'manager'>('dashboard');
   const [submissions, setSubmissions] = useState<SBO[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  
+
   // Auth Form State
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  
+  const [username, setUsername] = useState('');
+
   // Toast state
   const [toast, setToast] = useState<{message: string, type: ToastType} | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -62,35 +50,9 @@ const App: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      try {
-        if (firebaseUser) {
-          const role: any = firebaseUser.email?.includes('manager') ? 'manager' : 
-                           firebaseUser.email?.includes('hse') ? 'hse' : 'observer';
-                           
-          const userData: User = {
-            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'GZI Employee',
-            id: firebaseUser.uid,
-            dept: 'Operations',
-            role: role
-          };
-          setUser(userData);
-          await fetchData(firebaseUser.uid, role);
-        } else {
-          setUser(null);
-          setSubmissions([]);
-        }
-      } catch (err) {
-        showToast('Failed to sync data with server.', 'error');
-      } finally {
-        setLoading(false);
-      }
-    });
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      unsubscribe();
     };
   }, []);
 
@@ -111,28 +73,26 @@ const App: React.FC = () => {
     setAuthLoading(true);
 
     try {
-      if (isSignUp) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        if (fullName) {
-          await updateProfile(userCredential.user, { displayName: fullName });
-        }
-        showToast('Account created successfully!', 'success');
+      const foundUser = MOCK_USERS.find(u => u.name.toLowerCase() === username.toLowerCase());
+      if (foundUser) {
+        setUser(foundUser);
+        await fetchData(foundUser.id, foundUser.role);
+        showToast(`Welcome back, ${foundUser.name}!`, 'success');
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        showToast('Welcome back!', 'success');
+        setLoginError('User not found.');
       }
     } catch (err: any) {
       console.error("Auth failed:", err);
-      let friendlyMessage = 'Authentication failed. Please check your credentials.';
-      if (err.code === 'auth/user-not-found') friendlyMessage = 'No account found with this email.';
-      if (err.code === 'auth/wrong-password') friendlyMessage = 'Incorrect password.';
-      if (err.code === 'auth/email-already-in-use') friendlyMessage = 'This email is already registered.';
-      if (err.code === 'auth/weak-password') friendlyMessage = 'Password should be at least 6 characters.';
-      
-      setLoginError(friendlyMessage);
+      setLoginError('Authentication failed. Please try again.');
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setSubmissions([]);
+    showToast('You have been signed out.', 'info');
   };
 
   const handleAddSubmission = async (entry: SBO) => {
@@ -158,42 +118,18 @@ const App: React.FC = () => {
       <div className="flex flex-col min-h-screen max-w-md mx-auto bg-white items-center justify-center px-8 text-center py-10">
         <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center text-white font-black text-4xl shadow-2xl mb-8">G</div>
         <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">SAFETY MANAGER</h1>
-        <p className="text-slate-500 mb-8">{isSignUp ? 'Create your safety profile' : 'Secure sign-in for authorized personnel'}</p>
+        <p className="text-slate-500 mb-8">Secure sign-in for authorized personnel</p>
         
         <form onSubmit={handleAuth} className="w-full space-y-4">
-          {isSignUp && (
-            <div className="relative">
-              <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text"
-                placeholder="Full Name"
-                required
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-blue-100 transition-all outline-none"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </div>
-          )}
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
-              type="email"
-              placeholder="Corporate Email"
+              type="text"
+              placeholder="Enter your name"
               required
               className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-blue-100 transition-all outline-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="password"
-              placeholder="Password"
-              required
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-blue-100 transition-all outline-none"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
 
@@ -214,20 +150,34 @@ const App: React.FC = () => {
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <>
-                {isSignUp ? 'Register Account' : 'Sign In'}
+                Sign In
                 <ArrowRight size={18} />
               </>
             )}
           </button>
         </form>
 
-        <button 
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="mt-6 text-sm font-bold text-blue-600 hover:text-blue-700"
-        >
-          {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Register'}
-        </button>
-        
+        <div className="mt-8 w-full">
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Test Accounts</h3>
+          <div className="space-y-2">
+            {MOCK_USERS.map((mockUser) => (
+              <button
+                key={mockUser.id}
+                onClick={() => setUsername(mockUser.name)}
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-left hover:bg-slate-100 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium text-slate-900">{mockUser.name}</span>
+                    <span className="text-xs text-slate-500 ml-2">({mockUser.role})</span>
+                  </div>
+                  <span className="text-xs text-slate-400">{mockUser.dept}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <p className="mt-12 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
           Proprietary System of GZI Industry<br/>
           Unauthorized Access is Strictly Prohibited
@@ -259,7 +209,7 @@ const App: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <button className="text-slate-300 hover:text-slate-900"><Bell size={18} /></button>
-          <button onClick={() => signOut(auth)} className="text-slate-300 hover:text-rose-500"><LogOut size={18} /></button>
+          <button onClick={handleLogout} className="text-slate-300 hover:text-rose-500"><LogOut size={18} /></button>
         </div>
       </header>
 

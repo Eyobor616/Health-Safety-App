@@ -86,7 +86,7 @@ const NewSBOForm: React.FC<NewSBOFormProps> = ({ onSubmit, onCancel, currentUser
         subCategory: formData.subCategory,
         description: formData.description,
         suggestedSolution: formData.suggestedSolution,
-        imageUrl,
+        ...(imageUrl && { imageUrl }),
         status: formData.type === 'safe' ? 'closed' : 'open',
         comments: [],
         notifications: []

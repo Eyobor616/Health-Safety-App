@@ -1,18 +1,18 @@
 
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
   Timestamp,
   doc,
   updateDoc,
   arrayUnion,
   getDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+} from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "./firebase";
 import { SBO, User, Comment } from "./types";
 
@@ -56,11 +56,14 @@ export const getUserSBOs = async (userId: string, role: string): Promise<SBO[]> 
     }
     
     const snapshot = await getDocs(q);
-    const results = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: (doc.data().timestamp as Timestamp).toMillis()
-    } as SBO));
+    const results = snapshot.docs.map(doc => {
+      const data = doc.data() as Omit<SBO, 'id'> & { timestamp: Timestamp };
+      return {
+        id: doc.id,
+        ...data,
+        timestamp: data.timestamp.toMillis()
+      } as SBO;
+    });
 
     // Cache results for offline use
     localStorage.setItem(`gzi_sbo_cache_${userId}`, JSON.stringify(results));

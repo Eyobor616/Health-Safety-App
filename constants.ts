@@ -1,49 +1,55 @@
+import { User } from './types';
 
-export const LOCATIONS = ['Lagos Plant', 'Aba Plant', 'Agbara Plant'];
-export const UNITS = ['Canline 1', 'Canline 2', 'Endline 1', 'Warehouse', 'Maintenance'];
-export const AREA_MANAGERS = ['John Doe', 'Sarah Smith', 'Michael Chen', 'Olu Bakare'];
-export const DEPARTMENTS = ['Production', 'Safety', 'Engineering', 'Logistics', 'Quality'];
+export const MOCK_USERS: User[] = [
+  { id: '1', name: 'Manager Tom', role: 'manager', dept: 'Operations' },
+  { id: '2', name: 'Manager Jerry', role: 'manager', dept: 'Operations' },
+  { id: '3', name: 'HSE Admin', role: 'hse', dept: 'Safety' },
+  { id: '4', name: 'Observer 1', role: 'observer', dept: 'Operations' },
+  { id: '5', name: 'Observer 2', role: 'observer', dept: 'Operations' },
+  { id: '6', name: 'Observer 3', role: 'observer', dept: 'Operations' },
+  { id: '7', name: 'Observer 4', role: 'observer', dept: 'Operations' },
+  { id: '8', name: 'Observer 5', role: 'observer', dept: 'Operations' },
+];
 
-/**
- * JSON Mapping of Categories to Subcategories based on GZI Excel data.
- */
-export const CATEGORIES_MAP: Record<string, string[]> = {
-  'Body Position': [
-    'Ascending/Descending', 'Grip/Force', 'Lifting/Lowering', 
-    'Line of fire', 'Pivoting/Twisting', 'Posture', 
-    'Risk of burns', 'Risk of falling', 'Others'
-  ],
-  'Food Safety': [
-    'CAN Contamination', 'External Openings', 'Access Control', 
-    'Raw Material Contamination', 'Pest Infestation', 'Personnel Hygiene'
-  ],
-  'Peoples Initial Reaction': [
-    'Adapting the task', 'Adjusting PPE', 'Changing position', 
-    'Stopping the task', 'Others'
-  ],
-  'Pollution': [
-    'Air', 'Land', 'Water', 'Others'
-  ],
-  'PPE': [
-    'Body', 'Eyes and face', 'Feet and legs', 'Hands and arms', 
-    'Head', 'Hearing', 'Respiratory System', 'Others'
-  ],
-  'Procedures': [
-    'Adequate but no followed', 'Inadequate', 'LOTO/Energy Isolation', 
-    'There are no written procedures', 'Others'
-  ],
-  'Tools & Equipment': [
-    'Appropriate for the task/use', 'Selection/condition', 
-    'Used correctly', 'Others'
-  ],
-  'Work Environment': [
-    'Appropriate for the task/use', 'Selection/condition', 
-    'Used correctly', 'Others'
-  ]
+export const LOCATIONS = [
+  'Plant A',
+  'Plant B',
+  'Plant C',
+  'Warehouse',
+  'Office'
+];
+
+export const UNITS = [
+  'Unit 1',
+  'Unit 2',
+  'Unit 3',
+  'Line A',
+  'Line B'
+];
+
+export const AREA_MANAGERS = [
+  'John Doe',
+  'Sarah Smith',
+  'Michael Chen',
+  'Olu Bakare'
+];
+
+export const CATEGORIES = [
+  'Equipment',
+  'Procedures',
+  'Environment',
+  'Personal Protective Equipment',
+  'Training'
+];
+
+const SUBCATEGORIES: Record<string, string[]> = {
+  'Equipment': ['Maintenance', 'Operation', 'Calibration'],
+  'Procedures': ['Documentation', 'Compliance', 'Execution'],
+  'Environment': ['Cleanliness', 'Lighting', 'Ventilation'],
+  'Personal Protective Equipment': ['Availability', 'Condition', 'Usage'],
+  'Training': ['Certification', 'Awareness', 'Skills']
 };
 
-export const CATEGORIES = Object.keys(CATEGORIES_MAP);
-
 export const getSubCategories = (category: string): string[] => {
-  return CATEGORIES_MAP[category] || [];
+  return SUBCATEGORIES[category] || [];
 };
