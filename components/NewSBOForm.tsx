@@ -23,7 +23,8 @@ const NewSBOForm: React.FC<NewSBOFormProps> = ({ onSubmit, onCancel, currentUser
     type: 'safe' as SBOType,
     description: '',
     suggestedSolution: '',
-    image: null as string | null
+    image: null as string | null,
+    isActionable: false
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -89,7 +90,9 @@ const NewSBOForm: React.FC<NewSBOFormProps> = ({ onSubmit, onCancel, currentUser
         ...(imageUrl && { imageUrl }),
         status: formData.type === 'safe' ? 'closed' : 'open',
         comments: [],
-        notifications: []
+        notifications: [],
+        isActionable: formData.isActionable,
+        ...(formData.isActionable && { actionStatus: 'pending' as const })
       };
 
       const docId = await createSBO(sboData);
@@ -246,9 +249,9 @@ const NewSBOForm: React.FC<NewSBOFormProps> = ({ onSubmit, onCancel, currentUser
                 disabled={submitting}
                 onClick={() => handleInputChange('type', level)}
                 className={`flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase transition-all duration-300 ${
-                  formData.type === level 
-                    ? level === 'safe' ? 'bg-emerald-500 text-white shadow-lg' : 
-                      level === 'unsafe' ? 'bg-rose-500 text-white shadow-lg' : 
+                  formData.type === level
+                    ? level === 'safe' ? 'bg-emerald-500 text-white shadow-lg' :
+                      level === 'unsafe' ? 'bg-rose-500 text-white shadow-lg' :
                       'bg-slate-900 text-white shadow-lg'
                     : 'text-slate-400'
                 }`}
@@ -257,6 +260,23 @@ const NewSBOForm: React.FC<NewSBOFormProps> = ({ onSubmit, onCancel, currentUser
               </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Actionable Entry */}
+      <section className="space-y-4">
+        <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-2">Follow-up Action</h3>
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isActionable}
+              onChange={(e) => handleInputChange('isActionable', e.target.checked)}
+              disabled={submitting}
+              className="w-5 h-5 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm font-medium text-slate-700">Mark as actionable - requires follow-up</span>
+          </label>
         </div>
       </section>
 

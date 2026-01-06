@@ -26,6 +26,7 @@ export interface Notification {
 export type SBOStatus = 'open' | 'pending' | 'closed';
 export type SBOType = 'safe' | 'unsafe' | 'near-miss';
 export type ActOrCondition = 'act' | 'condition';
+export type ActionStatus = 'pending' | 'in-progress' | 'completed';
 
 /**
  * Data model for a Safety Behavioral Observation (SBO)
@@ -50,4 +51,8 @@ export interface SBO {
   timestamp: number;
   closedAt?: number;
   closedBy?: string;
+  isActionable?: boolean;
+  actionAssigneeId?: string;
+  actionDeadline?: number;
+  actionStatus?: ActionStatus;
 }

@@ -10,19 +10,23 @@ import {
   WifiOff,
   AlertTriangle,
   ArrowRight,
-  User as UserIcon
+  User as UserIcon,
+  CheckSquare,
+  BarChart3
 } from 'lucide-react';
 import { getUserSBOs } from "./api";
 import Dashboard from './components/Dashboard';
 import NewSBOForm from './components/NewSBOForm';
 import SubmissionHistory from './components/SubmissionHistory';
 import ManagerDashboard from './components/ManagerDashboard';
+import ActionRecords from './components/ActionRecords';
+import SummaryDashboard from './components/SummaryDashboard';
 import Toast, { ToastType } from './components/Toast';
 import { SBO, User } from './types';
 import { MOCK_USERS } from './constants';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'form' | 'history' | 'manager'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'form' | 'history' | 'manager' | 'actions' | 'summary'>('dashboard');
   const [submissions, setSubmissions] = useState<SBO[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -218,6 +222,8 @@ const App: React.FC = () => {
         {activeTab === 'form' && <NewSBOForm onSubmit={handleAddSubmission} onCancel={() => setActiveTab('dashboard')} currentUser={user} />}
         {activeTab === 'history' && <SubmissionHistory submissions={submissions} />}
         {activeTab === 'manager' && <ManagerDashboard submissions={submissions} currentUser={user} refresh={refreshData} />}
+        {activeTab === 'actions' && <ActionRecords currentUserId={user.id} />}
+        {activeTab === 'summary' && <SummaryDashboard currentUser={user} />}
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/80 backdrop-blur-md border-t border-slate-100 px-6 py-4 flex justify-around z-50">
@@ -239,7 +245,7 @@ const App: React.FC = () => {
           </button>
         )}
 
-        <button 
+        <button
           onClick={() => setActiveTab('history')}
           className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'history' ? 'text-blue-600' : 'text-slate-300'}`}
         >
@@ -247,9 +253,20 @@ const App: React.FC = () => {
           <span className="text-[8px] font-black uppercase tracking-widest">History</span>
         </button>
 
-        <button className="flex flex-col items-center gap-1 text-slate-300">
-          <Settings size={20} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Profile</span>
+        <button
+          onClick={() => setActiveTab('actions')}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'actions' ? 'text-blue-600' : 'text-slate-300'}`}
+        >
+          <CheckSquare size={20} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Actions</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('summary')}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'summary' ? 'text-blue-600' : 'text-slate-300'}`}
+        >
+          <BarChart3 size={20} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Summary</span>
         </button>
       </nav>
     </div>

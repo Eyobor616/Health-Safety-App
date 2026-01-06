@@ -110,3 +110,56 @@ export const closeSBO = async (sboId: string, userId: string) => {
     throw new Error("Failed to close SBO.");
   }
 };
+
+export const assignAction = async (sboId: string, assigneeId: string, deadline?: number) => {
+  try {
+    const docRef = doc(db, 'sbos', sboId);
+    await updateDoc(docRef, {
+      actionAssigneeId: assigneeId,
+      ...(deadline && { actionDeadline: deadline }),
+      actionStatus: 'in-progress'
+    });
+
+    // Add notification
+    await addDoc(collection(db, 'notifications'), {
+      recipientId: assigneeId,
+      message: `You have been assigned to follow up on a safety observation.`,
+      type: 'alert',
+      timestamp: Timestamp.now(),
+      read: false,
+      sboId
+    });
+  } catch (err) {
+    throw new Error("Failed to assign action.");
+  }
+};
+
+export const getActionRecords = async (userId: string): Promise<SBO[]> => {
+  try {
+    const q = query(collection(db, 'sbos'), where('actionAssigneeId', '==', userId));
+    const snapshot = await getDocs(q);
+    const results = snapshot.docs.map(doc => {
+      const data = doc.data() as Omit<SBO, 'id'> & { timestamp: Timestamp };
+      return {
+        id: doc.id,
+        ...data,
+        timestamp: data.timestamp.toMillis()
+      } as SBO;
+    }).sort((a, b) => b.timestamp - a.timestamp); // Sort in memory
+    return results;
+  } catch (err) {
+    console.error("Fetch Action Records Error:", err);
+    throw err;
+  }
+};
+
+export const completeAction = async (sboId: string) => {
+  try {
+    const docRef = doc(db, 'sbos', sboId);
+    await updateDoc(docRef, {
+      actionStatus: 'completed'
+    });
+  } catch (err) {
+    throw new Error("Failed to complete action.");
+  }
+};

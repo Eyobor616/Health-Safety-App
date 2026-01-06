@@ -11,8 +11,8 @@ import {
   X
 } from 'lucide-react';
 import { SBO, User, Comment } from '../types';
-import { AREA_MANAGERS } from '../constants';
-import { addComment, reassignSBO, closeSBO } from '../api';
+import { AREA_MANAGERS, MOCK_USERS } from '../constants';
+import { addComment, reassignSBO, closeSBO, assignAction } from '../api';
 
 interface ManagerDashboardProps {
   submissions: SBO[];
@@ -24,13 +24,15 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ submissions, curren
   const [selectedSbo, setSelectedSbo] = useState<SBO | null>(null);
   const [commentText, setCommentText] = useState('');
   const [isReassigning, setIsReassigning] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [assigneeId, setAssigneeId] = useState('');
 
   // HSE sees all open/pending. Managers see their assigned open/pending.
   const activeTasks = submissions.filter(s => 
     s.status !== 'closed' && (currentUser.role === 'hse' || s.areaMgr === currentUser.name)
   );
 
-  const handleAction = async (action: 'comment' | 'reassign' | 'close', value?: string) => {
+  const handleAction = async (action: 'comment' | 'reassign' | 'close' | 'assign', value?: string) => {
     if (!selectedSbo) return;
 
     if (action === 'comment' && commentText.trim()) {
@@ -48,8 +50,12 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ submissions, curren
       setIsReassigning(false);
     } else if (action === 'close') {
       await closeSBO(selectedSbo.id, currentUser.id);
+    } else if (action === 'assign' && assigneeId) {
+      await assignAction(selectedSbo.id, assigneeId);
+      setIsAssigning(false);
+      setAssigneeId('');
     }
-    
+
     refresh();
     setSelectedSbo(null);
   };
@@ -102,9 +108,16 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ submissions, curren
                     <p className="text-[10px] font-bold text-slate-400 uppercase">{sbo.location}</p>
                   </div>
                 </div>
-                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg ${sbo.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
-                  {sbo.status}
-                </span>
+                <div className="flex gap-1">
+                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg ${sbo.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                    {sbo.status}
+                  </span>
+                  {sbo.isActionable && (
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700">
+                      Action
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
                 {sbo.description}
@@ -140,13 +153,21 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ submissions, curren
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Take Action</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
+                <div className={`grid gap-3 ${selectedSbo.isActionable && !selectedSbo.actionAssigneeId ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                  <button
                     onClick={() => setIsReassigning(!isReassigning)}
                     className="flex items-center justify-center gap-2 p-4 bg-white border-2 border-slate-100 rounded-2xl text-slate-600 text-xs font-black uppercase tracking-wider"
                   >
                     <UserPlus size={16} /> Reassign
                   </button>
+                  {selectedSbo.isActionable && !selectedSbo.actionAssigneeId && (
+                    <button
+                      onClick={() => setIsAssigning(!isAssigning)}
+                      className="flex items-center justify-center gap-2 p-4 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-200"
+                    >
+                      <UserPlus size={16} /> Assign Action
+                    </button>
+                  )}
                   <button 
                     onClick={() => handleAction('close')}
                     className="flex items-center justify-center gap-2 p-4 bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-emerald-200"
@@ -158,13 +179,33 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ submissions, curren
 
               {isReassigning && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                  <select 
+                  <select
                     onChange={(e) => handleAction('reassign', e.target.value)}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold"
                   >
                     <option value="">Select New Manager</option>
                     {AREA_MANAGERS.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
+                </div>
+              )}
+
+              {isAssigning && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
+                  <select
+                    value={assigneeId}
+                    onChange={(e) => setAssigneeId(e.target.value)}
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold"
+                  >
+                    <option value="">Select Assignee</option>
+                    {MOCK_USERS.filter(u => u.role === 'observer').map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                  <button
+                    onClick={() => handleAction('assign')}
+                    disabled={!assigneeId}
+                    className="w-full p-4 bg-blue-600 text-white rounded-2xl text-sm font-bold disabled:opacity-50"
+                  >
+                    Assign Action
+                  </button>
                 </div>
               )}
 
