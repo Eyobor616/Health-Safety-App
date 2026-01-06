@@ -142,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({ submissions, onStartNew }) => {
         </div>
         <div>
           <p className="text-emerald-900 text-[11px] font-black uppercase tracking-wider leading-none mb-1">Stay Vigilant</p>
-          <p className="text-emerald-600/70 text-[10px] font-medium leading-tight">A safe plant starts with a single observation. Every report matters.</p>
+          <p className="text-emerald-600/70 text-[10px] font-medium leading-tight">A safe workplace starts with a single observation. Every report matters.</p>
         </div>
       </div>
 

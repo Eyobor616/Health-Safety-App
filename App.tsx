@@ -157,7 +157,7 @@ const App: React.FC = () => {
     return (
       <div className="flex flex-col min-h-screen max-w-md mx-auto bg-white items-center justify-center px-8 text-center py-10">
         <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center text-white font-black text-4xl shadow-2xl mb-8">G</div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">GZI SAFETY</h1>
+        <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">SAFETY MANAGER</h1>
         <p className="text-slate-500 mb-8">{isSignUp ? 'Create your safety profile' : 'Secure sign-in for authorized personnel'}</p>
         
         <form onSubmit={handleAuth} className="w-full space-y-4">
@@ -251,7 +251,7 @@ const App: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">G</div>
           <div className="flex flex-col">
-            <h1 className="text-lg font-black text-slate-800 leading-none">GZI SAFETY</h1>
+            <h1 className="text-lg font-black text-slate-800 leading-none">SAFETY MANAGER</h1>
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-1">
               {user.role === 'hse' ? 'Safety HQ' : user.role === 'manager' ? 'Ops Control' : 'Observer'}
             </span>

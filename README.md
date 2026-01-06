@@ -1,5 +1,5 @@
 
-# GZI Safety Behavioral Observation (SBO) App
+# SAFETY MANAGER Behavioral Observation (SBO) App
 
 Mobile-optimized application for tracking and managing health and safety observations within GZI canline operations.
 
