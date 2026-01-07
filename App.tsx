@@ -183,7 +183,7 @@ const App: React.FC = () => {
         </div>
 
         <p className="mt-12 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
-          Proprietary System of GZI Industry<br/>
+          Proprietary System of Devtonic Systems Hub<br/>
           Unauthorized Access is Strictly Prohibited
         </p>
       </div>
